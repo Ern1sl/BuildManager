@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Architectural Layout - Deep Slate Palette */
+  --frame-bg: #050505;        /* Master Frame (Outer) */
+  --background: #0d0d0f;      /* Dashboard & Sidebar Panels - Darkened foundation */
+  --card-bg: #262629;         /* Individual Windows/Cards - Brightened further for clarity */
+  --card-border: rgba(255, 255, 255, 0.1); /* Slightly sharper border for the windows */ 
+  
+  --foreground: #ffffff;
+  --foreground-rgb: 255, 255, 255;
+  --text-secondary: #71717a;  /* Zinc 400 */
+  --input-bg: rgba(0, 0, 0, 0.3);
+  --input-border: rgba(255, 255, 255, 0.05);
+  
+  /* Luxury Purple Palette */
+  --accent-primary: #8b5cf6;  /* Violet 500 */
+  --accent-primary-rgb: 139, 92, 246;
+  --accent-soft: #a78bfa;     /* Violet 400 */
+  --accent-heavy: #7c3aed;    /* Violet 600 */
+  --accent-neon: #8b5cf6;     
+  
+  --accent-green: #22c55e;
+  --accent-orange: #f59e0b;
+  --accent-blue: #3b82f6;
+  
+  /* Border Radius */
+  --radius-xl: 2.5rem;        
+  --radius-lg: 1.5rem;
+}
+
+.light-mode {
+  --frame-bg: #d4d4d8;        /* Zinc 300 - Darker Silver Frame */
+  --background: #e4e4e7;      /* Zinc 200 - Silver Panel Background */
+  --card-bg: #f4f4f5;         /* Zinc 100 - Elevated Silver Cards */
+  --card-border: #a1a1aa;     /* Zinc 400 - High Contrast Borders */
+  
+  --foreground: #09090b;      /* Zinc 950 - Deep Onyx Text */
+  --foreground-rgb: 9, 9, 11;
+  --text-secondary: #52525b;  /* Zinc 600 - Muted Slate Labels */
+  --input-bg: rgba(0, 0, 0, 0.05);
+  --input-border: rgba(0, 0, 0, 0.1);
+  
+  /* Luxury Purple Retained for Identity */
+  --accent-primary: #7c3aed;  
+  --accent-primary-rgb: 124, 58, 237;
+  --accent-soft: #8b5cf6;
+  --accent-heavy: #6d28d9;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--frame-bg); /* Use master frame color */
+  font-family: var(--font-funnel), sans-serif;
+  letter-spacing: -0.02em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Luxury Utils */
+.glass-panel {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); /* Soft shadow for light mode */
+}
+
+.window-panel {
+  background: var(--background);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07);
+  transform: translateZ(0);
+  will-change: transform;
+  contain: layout style;
+}
+
+.neon-glow {
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.1);
+}
+
+.text-shadow-sm {
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.ghost-blur {
+  filter: blur(12px) grayscale(1);
+  opacity: 0.6;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ghost-blur-sm {
+  filter: blur(4px) grayscale(0.5);
+  opacity: 0.8;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--frame-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}

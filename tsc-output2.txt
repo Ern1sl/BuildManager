@@ -1,0 +1,19 @@
+src/components/CalendarClient.tsx(181,5): error TS2304: Cannot find name 'setNewTitle'.
+src/components/CalendarClient.tsx(182,5): error TS2304: Cannot find name 'setNewCategory'.
+src/components/CalendarClient.tsx(183,5): error TS2304: Cannot find name 'setNewDate'.
+src/components/CalendarClient.tsx(184,5): error TS2304: Cannot find name 'setNewTime'.
+src/components/CalendarClient.tsx(455,38): error TS2322: Type 'FormikTouched<Date> | undefined' is not assignable to type 'boolean | undefined'.
+  Type 'FormikTouched<Date>' is not assignable to type 'boolean | undefined'.
+src/components/ProjectFormModal.tsx(215,28): error TS2322: Type 'boolean | FormikTouched<any> | FormikTouched<any>[] | undefined' is not assignable to type 'boolean | undefined'.
+  Type 'FormikTouched<any>' is not assignable to type 'boolean | undefined'.
+src/components/ProjectFormModal.tsx(215,51): error TS2322: Type 'string | string[] | FormikErrors<any> | FormikErrors<any>[] | undefined' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.
+src/components/ProjectFormModal.tsx(259,28): error TS2322: Type 'boolean | FormikTouched<any> | FormikTouched<any>[] | undefined' is not assignable to type 'boolean | undefined'.
+  Type 'FormikTouched<any>' is not assignable to type 'boolean | undefined'.
+src/components/ProjectFormModal.tsx(337,42): error TS7006: Parameter 'id' implicitly has an 'any' type.
+src/components/ProjectFormModal.tsx(365,41): error TS7006: Parameter '_phase' implicitly has an 'any' type.
+src/components/ProjectFormModal.tsx(365,49): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/TeamClient.tsx(228,25): error TS2322: Type 'boolean | FormikTouched<any> | FormikTouched<any>[] | undefined' is not assignable to type 'boolean | undefined'.
+  Type 'FormikTouched<any>' is not assignable to type 'boolean | undefined'.
+src/components/TeamClient.tsx(229,25): error TS2322: Type 'string | string[] | FormikErrors<any> | FormikErrors<any>[] | undefined' is not assignable to type 'string | undefined'.
+  Type 'string[]' is not assignable to type 'string'.

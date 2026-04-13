@@ -1,0 +1,160 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("employee")
+  createdAt     DateTime  @default(now())
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([email, token])
+}
+
+model Project {
+  id         String   @id @default(cuid())
+  name       String
+  client     String?
+  deadline   DateTime?
+  budget     Float?
+  currency   String   @default("EUR") // EUR or USD
+  percentage Int      @default(0)
+  status     String   @default("on track")
+  color      String   @default("bg-blue-500")
+  location   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  stocks     Stock[]
+  workers    Worker[]
+  phases     Phase[]
+  events     Event[]
+}
+
+model Phase {
+  id         String   @id @default(cuid())
+  name       String
+  importance String   // Gray, Orange, Red
+  deadline   DateTime?
+  checked    Boolean  @default(false)
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+}
+
+model Task {
+  id             String   @id @default(cuid())
+  text           String
+  status         String?  // Urgent, Today, Northgate, etc.
+  previousStatus String?  // To restore status when unchecking
+  checked        Boolean  @default(false)
+  createdAt      DateTime @default(now())
+}
+
+model Worker {
+  id         String   @id @default(cuid())
+  name       String
+  role       String
+  monthlyPay Float    @default(500)
+  status     String   @default("active") // active, away
+  projectId  String?
+  project    Project? @relation(fields: [projectId], references: [id])
+  createdAt  DateTime @default(now())
+}
+
+model Role {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+}
+
+model Alert {
+  id        String   @id @default(cuid())
+  type      String   // warning, info, success, payroll
+  text      String
+  time      String
+  isNow     Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Stock {
+  id        String   @id @default(cuid())
+  item      String
+  amount    String
+  date      String
+  project   Project? @relation(fields: [projectId], references: [id])
+  projectId String?
+  createdAt DateTime @default(now())
+}
+
+model SiteLog {
+  id         String   @id @default(cuid())
+  date       DateTime
+  comment    String
+  importance String   // gray, orange, red
+  createdAt  DateTime @default(now())
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  category    String   // Work, Site, Meeting, Personal
+  color       String   @default("bg-accent-primary")
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+}
