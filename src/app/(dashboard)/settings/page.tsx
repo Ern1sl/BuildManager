@@ -15,6 +15,7 @@ import Modal from "@/components/Modal";
 import { useSession, signOut } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { getScopedKey } from "@/lib/storage";
 
 const PasswordSchema = Yup.object().shape({
   currentPassword: Yup.string().required("Current password is required"),
@@ -97,7 +98,9 @@ function SettingsContent() {
 
   const handleClearAll = async () => {
     await superFactoryReset();
-    localStorage.removeItem("buildmanager_global_notes");
+    if (session?.user?.id) {
+      localStorage.removeItem(getScopedKey(session.user.id, "buildmanager_global_notes"));
+    }
     window.location.reload();
   };
 

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
+import { getScopedKey } from "@/lib/storage";
 import AlarmNotification from "./AlarmNotification";
 
 export default function GlobalAlarmManager() {
@@ -9,9 +11,14 @@ export default function GlobalAlarmManager() {
   const [activeAlarmNote, setActiveAlarmNote] = useState("");
   const alarmFiredThisMinute = useRef(false);
 
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
   useEffect(() => {
     const timer = setInterval(() => {
-      const configStr = localStorage.getItem("buildmanager_alarmConfig");
+      if (!userId) return;
+
+      const configStr = localStorage.getItem(getScopedKey(userId, "buildmanager_alarmConfig"));
       if (!configStr) return;
       
       try {
@@ -44,7 +51,7 @@ export default function GlobalAlarmManager() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [userId]);
 
   // Continuous Alarm Chime Logic
   useEffect(() => {

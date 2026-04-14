@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { getScopedKey } from "@/lib/storage";
 import {
   Play,
   Square,
@@ -36,29 +38,36 @@ export default function TimeTrackerWidget({ onAlarmTrigger }: TimeTrackerWidgetP
   const [isRunning, setIsRunning] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
 
-  // Load Saved Stopwatch State
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
+  // Load Saved Stopwatch State when user changes
   useEffect(() => {
-    const saved = localStorage.getItem("buildmanager_stopwatch");
+    if (!userId) {
+      setElapsedTime(0);
+      setIsRunning(false);
+      return;
+    }
+    const saved = localStorage.getItem(getScopedKey(userId, "buildmanager_stopwatch"));
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (parsed.isRunning && parsed.originTime) {
           const newElapsed = Math.floor((Date.now() - parsed.originTime) / 1000);
-          // eslint-disable-next-line react-hooks/set-state-in-effect
           setElapsedTime(newElapsed > 0 ? newElapsed : 0);
-          // eslint-disable-next-line react-hooks/set-state-in-effect
           setIsRunning(true);
         } else {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
           setElapsedTime(parsed.elapsedTime || 0);
-          // eslint-disable-next-line react-hooks/set-state-in-effect
           setIsRunning(false);
         }
       } catch (e) {
         console.error("Failed to parse saved stopwatch config");
       }
+    } else {
+      setElapsedTime(0);
+      setIsRunning(false);
     }
-  }, []);
+  }, [userId]);
 
   const toggleStopwatch = () => {
     setIsRunning((prevRunning) => {
@@ -66,9 +75,9 @@ export default function TimeTrackerWidget({ onAlarmTrigger }: TimeTrackerWidgetP
       setElapsedTime((prevElapsed) => {
         if (nextRunning) {
            const originTime = Date.now() - prevElapsed * 1000;
-           localStorage.setItem("buildmanager_stopwatch", JSON.stringify({ isRunning: true, originTime }));
+           if (userId) localStorage.setItem(getScopedKey(userId, "buildmanager_stopwatch"), JSON.stringify({ isRunning: true, originTime }));
         } else {
-           localStorage.setItem("buildmanager_stopwatch", JSON.stringify({ isRunning: false, elapsedTime: prevElapsed }));
+           if (userId) localStorage.setItem(getScopedKey(userId, "buildmanager_stopwatch"), JSON.stringify({ isRunning: false, elapsedTime: prevElapsed }));
         }
         return prevElapsed;
       });
@@ -94,27 +103,36 @@ export default function TimeTrackerWidget({ onAlarmTrigger }: TimeTrackerWidgetP
     return () => clearInterval(timer);
   }, [alarmHour, alarmMin, alarmPeriod]);
 
-  // Load Saved Alarm Configuration on Mount
+  // Load Saved Alarm Configuration when user changes
   useEffect(() => {
-    const savedTheme = localStorage.getItem("buildmanager_alarmConfig");
-    if (savedTheme) {
+    if (!userId) {
+      setAlarmHour("06");
+      setAlarmMin("30");
+      setAlarmPeriod("AM");
+      setAlarmNote("");
+      setIsAlarmEnabled(false);
+      return;
+    }
+    const savedConfig = localStorage.getItem(getScopedKey(userId, "buildmanager_alarmConfig"));
+    if (savedConfig) {
       try {
-        const parsed = JSON.parse(savedTheme);
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        const parsed = JSON.parse(savedConfig);
         if (parsed.hour) setAlarmHour(parsed.hour);
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (parsed.min) setAlarmMin(parsed.min);
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (parsed.period) setAlarmPeriod(parsed.period);
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (parsed.note) setAlarmNote(parsed.note);
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (parsed.enabled !== undefined) setIsAlarmEnabled(parsed.enabled);
       } catch (e) {
         console.error("Failed to parse saved alarm config");
       }
+    } else {
+      setAlarmHour("06");
+      setAlarmMin("30");
+      setAlarmPeriod("AM");
+      setAlarmNote("");
+      setIsAlarmEnabled(false);
     }
-  }, []);
+  }, [userId]);
 
   const handleConfirmAlarm = () => {
     setHasAlarmChanges(false);
@@ -123,13 +141,15 @@ export default function TimeTrackerWidget({ onAlarmTrigger }: TimeTrackerWidgetP
     setTimeout(() => setShowConfirm(false), 2000);
  
     // Persist to local storage
-    localStorage.setItem("buildmanager_alarmConfig", JSON.stringify({
-      hour: alarmHour,
-      min: alarmMin,
-      period: alarmPeriod,
-      note: alarmNote,
-      enabled: true
-    }));
+    if (userId) {
+      localStorage.setItem(getScopedKey(userId, "buildmanager_alarmConfig"), JSON.stringify({
+        hour: alarmHour,
+        min: alarmMin,
+        period: alarmPeriod,
+        note: alarmNote,
+        enabled: true
+      }));
+    }
   };
 
   const handleToggleAlarm = () => {
@@ -144,14 +164,14 @@ export default function TimeTrackerWidget({ onAlarmTrigger }: TimeTrackerWidgetP
       note: alarmNote,
       enabled: nextEnabled
     };
-    localStorage.setItem("buildmanager_alarmConfig", JSON.stringify(config));
+    if (userId) localStorage.setItem(getScopedKey(userId, "buildmanager_alarmConfig"), JSON.stringify(config));
   };
 
   const handleClearAlarm = () => {
     setIsAlarmEnabled(false);
     setHasAlarmChanges(false);
     setShowConfirm(false);
-    localStorage.removeItem("buildmanager_alarmConfig");
+    if (userId) localStorage.removeItem(getScopedKey(userId, "buildmanager_alarmConfig"));
     // Optional: Reset inputs to default
     setAlarmHour("06");
     setAlarmMin("30");
@@ -177,7 +197,7 @@ export default function TimeTrackerWidget({ onAlarmTrigger }: TimeTrackerWidgetP
   const resetStopwatch = () => {
     setIsRunning(false);
     setElapsedTime(0);
-    localStorage.setItem("buildmanager_stopwatch", JSON.stringify({ isRunning: false, elapsedTime: 0 }));
+    if (userId) localStorage.setItem(getScopedKey(userId, "buildmanager_stopwatch"), JSON.stringify({ isRunning: false, elapsedTime: 0 }));
   };
 
   const formatStopwatch = (ms: number) => {

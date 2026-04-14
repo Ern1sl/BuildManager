@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { getScopedKey } from "@/lib/storage";
 import { NotebookPen, Trash2 } from "lucide-react";
 import ConfirmModal from "./ConfirmModal";
 
@@ -8,23 +10,34 @@ export default function PureNotepadCard() {
   const [notes, setNotes] = useState("");
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  // Load notes on mount
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
+  // Load notes when user changes
   useEffect(() => {
-    const saved = localStorage.getItem("buildmanager_global_notes");
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!userId) {
+      setNotes("");
+      return;
+    }
+    const saved = localStorage.getItem(getScopedKey(userId, "buildmanager_global_notes"));
     if (saved) setNotes(saved);
-  }, []);
+    else setNotes(""); // Reset for new user if no notes saved
+  }, [userId]);
 
   // Autosave notes
   const handleNoteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const nextVal = e.target.value;
     setNotes(nextVal);
-    localStorage.setItem("buildmanager_global_notes", nextVal);
+    if (userId) {
+      localStorage.setItem(getScopedKey(userId, "buildmanager_global_notes"), nextVal);
+    }
   };
 
   const handleClearConfirm = () => {
     setNotes("");
-    localStorage.removeItem("buildmanager_global_notes");
+    if (userId) {
+      localStorage.removeItem(getScopedKey(userId, "buildmanager_global_notes"));
+    }
   };
 
   return (

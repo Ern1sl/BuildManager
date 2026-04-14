@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { getScopedKey } from "@/lib/storage";
 import { Plus, Eye, EyeOff, UserPlus, Briefcase, Trash2 } from "lucide-react";
 import { useSafety } from "./SafetyContext";
 import Modal from "./Modal";
@@ -34,21 +36,27 @@ interface TeamClientProps {
 
 export default function TeamClient({ initialWorkers, roles, projects }: TeamClientProps) {
   const { isGhostMode } = useSafety();
-  const [showPay, setShowPay] = useState(true);
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
 
-  // Sync with localStorage for persistence
+  // Sync with localStorage for persistence when user changes
   useEffect(() => {
-    const saved = localStorage.getItem("show_personnel_pay");
-    if (saved !== null) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setShowPay(saved === "true");
+    if (!userId) {
+      setShowPay(true);
+      return;
     }
-  }, []);
+    const saved = localStorage.getItem(getScopedKey(userId, "show_personnel_pay"));
+    if (saved !== null) {
+      setShowPay(saved === "true");
+    } else {
+      setShowPay(true);
+    }
+  }, [userId]);
 
   const togglePay = () => {
     const next = !showPay;
     setShowPay(next);
-    localStorage.setItem("show_personnel_pay", String(next));
+    if (userId) localStorage.setItem(getScopedKey(userId, "show_personnel_pay"), String(next));
   };
   
   // Modals state

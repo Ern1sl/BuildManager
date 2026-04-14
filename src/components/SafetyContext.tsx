@@ -1,6 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { getScopedKey } from "@/lib/storage";
 
 interface SafetyContextType {
   isLocked: boolean;
@@ -22,32 +24,41 @@ export function SafetyProvider({ children }: { children: React.ReactNode }) {
   const [customPin, setCustomPin] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
   useEffect(() => {
-    const savedPin = localStorage.getItem("buildmanager_safety_pin");
-    const savedLockState = localStorage.getItem("buildmanager_is_locked") === "true";
-    const savedGhostState = localStorage.getItem("buildmanager_ghost_mode") === "true";
+    if (!userId) {
+      setIsLocked(false);
+      setIsGhostMode(false);
+      setCustomPin(null);
+      setIsInitialized(true);
+      return;
+    }
+
+    const savedPin = localStorage.getItem(getScopedKey(userId, "buildmanager_safety_pin"));
+    const savedLockState = localStorage.getItem(getScopedKey(userId, "buildmanager_is_locked")) === "true";
+    const savedGhostState = localStorage.getItem(getScopedKey(userId, "buildmanager_ghost_mode")) === "true";
     
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (savedPin) setCustomPin(savedPin);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (savedLockState) setIsLocked(true);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (savedGhostState) setIsGhostMode(true);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsInitialized(true);
-  }, []);
+  }, [userId]);
 
   const lock = () => {
     setIsLocked(true);
     setIsGhostMode(false);
-    localStorage.setItem("buildmanager_is_locked", "true");
-    localStorage.setItem("buildmanager_ghost_mode", "false");
+    if (userId) {
+      localStorage.setItem(getScopedKey(userId, "buildmanager_is_locked"), "true");
+      localStorage.setItem(getScopedKey(userId, "buildmanager_ghost_mode"), "false");
+    }
   };
 
   const toggleGhostMode = () => {
     setIsGhostMode(prev => {
       const next = !prev;
-      localStorage.setItem("buildmanager_ghost_mode", next ? "true" : "false");
+      if (userId) localStorage.setItem(getScopedKey(userId, "buildmanager_ghost_mode"), next ? "true" : "false");
       return next;
     });
   };
@@ -56,7 +67,7 @@ export function SafetyProvider({ children }: { children: React.ReactNode }) {
     const normalizedInput = enteredPin.toLowerCase();
     if (normalizedInput === MASTER_PIN.toLowerCase() || (customPin && normalizedInput === customPin.toLowerCase())) {
       setIsLocked(false);
-      localStorage.setItem("buildmanager_is_locked", "false");
+      if (userId) localStorage.setItem(getScopedKey(userId, "buildmanager_is_locked"), "false");
       return true;
     }
     return false;
@@ -64,7 +75,7 @@ export function SafetyProvider({ children }: { children: React.ReactNode }) {
 
   const setSafetyPin = (newPin: string) => {
     setCustomPin(newPin);
-    localStorage.setItem("buildmanager_safety_pin", newPin);
+    if (userId) localStorage.setItem(getScopedKey(userId, "buildmanager_safety_pin"), newPin);
   };
 
   if (!isInitialized) return null;
