@@ -6,9 +6,10 @@ import { redirect } from "next/navigation";
 export default async function TasksPage() {
   const session = await getSession();
   if (!session) redirect("/login");
+  const userId = session.user.id;
 
   const tasks = await db.task.findMany({
-    where: { userId: session.user.id },
+    where: { userId },
     orderBy: { createdAt: 'desc' }
   });
 

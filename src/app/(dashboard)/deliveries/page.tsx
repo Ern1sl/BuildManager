@@ -5,9 +5,10 @@ import { redirect } from "next/navigation";
 export default async function DeliveriesPage() {
   const session = await getSession();
   if (!session) redirect("/login");
+  const userId = session.user.id;
 
   const stocks = await db.stock.findMany({
-    where: { userId: session.user.id },
+    where: { userId },
     include: { project: { select: { name: true } } },
     orderBy: { createdAt: "desc" },
   });

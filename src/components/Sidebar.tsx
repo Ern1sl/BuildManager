@@ -43,22 +43,22 @@ export default function Sidebar() {
   return (
     <div className="flex flex-col h-full bg-transparent">
       {/* Branding - Matching Logo Style */}
-      <div className="pt-6 pb-2 px-6 mb-12">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[var(--accent-primary)] flex items-center justify-center text-white shadow-[0_0_20px_rgba(139,92,246,0.3)] shrink-0">
+      <div className="pt-5 pb-2 px-4 lg:px-6 mb-8 lg:mb-12">
+        <div className="flex items-center gap-2 lg:gap-3">
+          <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-[var(--accent-primary)] flex items-center justify-center text-white shadow-[0_0_20px_rgba(139,92,246,0.3)] shrink-0">
             <div className="bg-white/20 p-1.5 rounded-lg">
-                <div className="w-4 h-4 bg-white rounded-full animate-pulse" />
+                <div className="w-3 h-3 lg:w-4 lg:h-4 bg-white rounded-full animate-pulse" />
             </div>
           </div>
-          <h1 className="text-2xl font-sans font-light text-[var(--foreground)] tracking-tighter">BuildManager.</h1>
+          <h1 className="text-lg lg:text-2xl font-sans font-light text-[var(--foreground)] tracking-tighter truncate">BuildManager.</h1>
         </div>
       </div>
 
       {/* Navigation - High Density Grouping */}
-      <nav className="flex flex-col gap-10 px-6">
+      <nav className="flex flex-col gap-8 lg:gap-10 px-4 lg:px-6">
         {navGroups.map((group) => (
-          <div key={group.category} className="flex flex-col gap-3">
-            <h3 className="text-[10px] font-condensed font-black tracking-[0.2em] text-[var(--text-secondary)] uppercase opacity-40 ml-2">
+          <div key={group.category} className="flex flex-col gap-2 lg:gap-3">
+            <h3 className="text-[9px] lg:text-[10px] font-condensed font-black tracking-[0.2em] text-[var(--text-secondary)] uppercase opacity-40 ml-2">
               {group.category}
             </h3>
             <ul className="flex flex-col gap-1">
@@ -68,7 +68,7 @@ export default function Sidebar() {
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 group ${
+                      className={`flex items-center gap-2 lg:gap-3 px-3 lg:px-4 py-2.5 lg:py-3 rounded-xl lg:rounded-2xl transition-all duration-300 group ${
                         isActive
                           ? "bg-[var(--foreground)]/[0.05] text-[var(--foreground)] shadow-xl ring-1 ring-[var(--foreground)]/[0.1]"
                           : "text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--foreground)]/[0.05]"
@@ -82,7 +82,7 @@ export default function Sidebar() {
                             : "group-hover:text-[var(--foreground)]"
                         }
                       />
-                      <span className="text-sm font-heading tracking-wide">
+                      <span className="text-sm font-heading tracking-wide truncate">
                         {item.name}
                       </span>
                     </Link>
@@ -95,16 +95,16 @@ export default function Sidebar() {
       </nav>
 
       {/* Logout - Bottom Anchored */}
-      <div className="mt-auto px-6 pb-10">
+      <div className="mt-auto px-4 lg:px-6 pb-6 lg:pb-10">
           <button
             onClick={() => setIsConfirmOpen(true)}
-            className="flex items-center gap-3 w-full px-6 py-4 rounded-2xl border border-transparent text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-red-500/10 hover:border-red-500/50 transition-all group"
+            className="flex items-center gap-2 lg:gap-3 w-full px-4 lg:px-6 py-3 lg:py-4 rounded-xl lg:rounded-2xl border border-transparent text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-red-500/10 hover:border-red-500/50 transition-all group"
           >
             <LogOut
               size={18}
               className="group-hover:-translate-x-1 transition-transform"
             />
-            <span className="text-xs font-condensed font-bold tracking-widest uppercase">Logout</span>
+            <span className="text-xs font-condensed font-bold tracking-widest uppercase truncate">Logout</span>
           </button>
       </div>
 

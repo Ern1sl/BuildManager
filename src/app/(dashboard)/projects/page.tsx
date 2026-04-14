@@ -10,9 +10,11 @@ export default async function ProjectsPage() {
     redirect("/login");
   }
 
+  const userId = session.user.id;
+
   const [projects, workers] = await Promise.all([
     db.project.findMany({
-      where: { userId: session.user.id },
+      where: { userId },
       include: {
         workers: true,
         phases: { orderBy: { createdAt: 'asc' } }
@@ -20,7 +22,7 @@ export default async function ProjectsPage() {
       orderBy: { createdAt: 'desc' }
     }),
     db.worker.findMany({ 
-      where: { userId: session.user.id },
+      where: { userId },
       select: { id: true, name: true, role: true } 
     })
   ]);

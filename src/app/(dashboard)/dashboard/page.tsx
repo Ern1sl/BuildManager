@@ -17,15 +17,17 @@ export default async function Home() {
     redirect("/login");
   }
 
+  const userId = session.user.id;
+
   // 1. Critical Base Calculations (Minimal Blocking)
   const [projects, totalWorkers] = await Promise.all([
     db.project.findMany({ 
-      where: { userId: session.user.id },
+      where: { userId },
       orderBy: { percentage: 'desc' },
       include: { workers: true }
     }),
     db.worker.count({
-      where: { userId: session.user.id }
+      where: { userId }
     })
   ]);
 

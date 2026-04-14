@@ -10,9 +10,11 @@ export default async function CalendarPage() {
     redirect("/login");
   }
 
+  const userId = session.user.id;
+
   const [projects, manualEvents] = await Promise.all([
     db.project.findMany({
-      where: { userId: session.user.id },
+      where: { userId },
       select: {
         id: true,
         name: true,
@@ -28,7 +30,7 @@ export default async function CalendarPage() {
       }
     }),
     db.event.findMany({
-      where: { userId: session.user.id },
+      where: { userId },
       include: {
         project: { select: { name: true } }
       },

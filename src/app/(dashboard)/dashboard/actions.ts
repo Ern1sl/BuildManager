@@ -11,16 +11,17 @@ import { getSession } from "@/lib/auth";
  */
 export async function toggleTask(taskId: string, currentChecked: boolean) {
   const session = await getSession();
-  if (!session?.user?.id) return { success: false, error: "Unauthorized" };
+  const userId = session?.user?.id;
+  if (!userId) return { success: false, error: "Unauthorized" };
 
   try {
-    const task = await db.task.findUnique({ where: { id: taskId, userId: session.user.id } });
+    const task = await db.task.findUnique({ where: { id: taskId, userId } });
     if (!task) return { success: false, error: "Task not found" };
 
     if (!currentChecked) {
       // Transitioning to CHECKED (Done)
       await db.task.update({
-        where: { id: taskId, userId: session.user.id },
+        where: { id: taskId, userId },
         data: { 
           checked: true,
           previousStatus: task.status, // Save current for later
@@ -30,7 +31,7 @@ export async function toggleTask(taskId: string, currentChecked: boolean) {
     } else {
       // Transitioning to UNCHECKED (Restoring)
       await db.task.update({
-        where: { id: taskId, userId: session.user.id },
+        where: { id: taskId, userId },
         data: { 
           checked: false,
           status: task.previousStatus || "Today", // Restore or fallback
@@ -48,7 +49,8 @@ export async function toggleTask(taskId: string, currentChecked: boolean) {
 
 export async function addTask(text: string, status: string = "Today") {
   const session = await getSession();
-  if (!session?.user?.id) return { success: false, error: "Unauthorized" };
+  const userId = session?.user?.id;
+  if (!userId) return { success: false, error: "Unauthorized" };
 
   try {
     await db.task.create({
@@ -56,7 +58,7 @@ export async function addTask(text: string, status: string = "Today") {
         text, 
         status, 
         checked: false,
-        userId: session.user.id
+        userId
       }
     });
     revalidatePath("/dashboard");
@@ -69,10 +71,11 @@ export async function addTask(text: string, status: string = "Today") {
 
 export async function deleteTask(taskId: string) {
   const session = await getSession();
-  if (!session?.user?.id) return { success: false, error: "Unauthorized" };
+  const userId = session?.user?.id;
+  if (!userId) return { success: false, error: "Unauthorized" };
 
   try {
-    await db.task.delete({ where: { id: taskId, userId: session.user.id } });
+    await db.task.delete({ where: { id: taskId, userId } });
     revalidatePath("/dashboard");
     return { success: true };
   } catch (error) {
