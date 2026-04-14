@@ -55,7 +55,6 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user, account, profile, trigger }) {
-      console.log("[NEXTAUTH] jwt callback - trigger:", trigger, "user:", user ? user.id : "none", "token.id:", token.id);
       if (user) {
         token.id = user.id;
         token.name = (user as any).name;
@@ -64,13 +63,16 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      console.log("[NEXTAUTH] session callback - token.id:", token?.id);
       if (token && session.user) {
         session.user.id = token.id as string;
         session.user.name = token.name as string;
         session.user.role = (token.role as string) || "employee";
       }
       return session;
+    },
+    async signIn({ user, account, profile, email, credentials }) {
+      console.log("[NEXTAUTH] signIn callback", { provider: account?.provider, email: user.email });
+      return true;
     },
   },
   pages: {

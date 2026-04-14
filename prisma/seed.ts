@@ -17,60 +17,94 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log("Starting Sequential Seed...");
+  console.log("Starting Sequential Multi-Tenant Seed...");
 
   try {
-    console.log("1. Cleaning Stock...");
+    // 0. Ensure we have at least one user to assign data to
+    let user = await prisma.user.findFirst();
+    if (!user) {
+      console.log("0. No user found, creating default admin@buildmanager.com...");
+      user = await prisma.user.create({
+        data: {
+          email: "admin@buildmanager.com",
+          name: "Admin",
+          role: "admin",
+          // password: "password123" hashed
+          password: "$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgNI9B969zV69Fv164t.LSKODR2W"
+        }
+      });
+    }
+    const userId = user.id;
+
+    console.log("1. Cleaning Database...");
+    await prisma.event.deleteMany();
     await prisma.stock.deleteMany();
-    console.log("2. Cleaning Alerts...");
     await prisma.alert.deleteMany();
-    console.log("3. Cleaning Tasks...");
     await prisma.task.deleteMany();
-    console.log("4. Cleaning Workers...");
     await prisma.worker.deleteMany();
-    console.log("5. Cleaning Projects...");
+    await prisma.role.deleteMany();
+    await prisma.phase.deleteMany();
+    await prisma.siteLog.deleteMany();
     await prisma.project.deleteMany();
 
-    console.log("6. Creating Northgate Project...");
+    console.log("2. Creating Roles...");
+    const role1 = await prisma.role.create({ data: { name: "Laborer", userId } });
+    const role2 = await prisma.role.create({ data: { name: "Foreman", userId } });
+
+    console.log("3. Creating Projects...");
     const p1 = await prisma.project.create({
-      data: { name: "Northgate Phase 2", percentage: 67, status: "on track", color: "bg-green-500" },
+      data: { name: "Northgate Phase 2", percentage: 67, status: "on track", color: "bg-green-500", userId },
     });
 
-    console.log("7. Creating Veliu Project...");
     const p2 = await prisma.project.create({
-      data: { name: "Veliu Residential Block", percentage: 41, status: "needs review", color: "bg-orange-500" },
+      data: { name: "Veliu Residential Block", percentage: 41, status: "needs review", color: "bg-orange-500", userId },
     });
 
-    console.log("8. Creating Dragash Project...");
     await prisma.project.create({
-      data: { name: "Dragash Road Extension", percentage: 12, status: "on track", color: "bg-blue-500" },
+      data: { name: "Dragash Road Extension", percentage: 12, status: "on track", color: "bg-blue-500", userId },
     });
 
-    console.log("9. Creating Workers...");
+    console.log("4. Creating Workers...");
     for (let i = 0; i < 5; i++) {
-        await prisma.worker.create({ data: { name: `Worker ${i+1}`, role: "Laborer", monthlyPay: 80 } });
+        await prisma.worker.create({ 
+          data: { 
+            name: `Worker ${i+1}`, 
+            role: i === 0 ? role2.name : role1.name, 
+            monthlyPay: 80,
+            userId 
+          } 
+        });
     }
 
-    console.log("10. Creating Tasks...");
-    await prisma.task.create({ data: { text: "Morning briefing with foremen", status: "Done", checked: true } });
-    await prisma.task.create({ data: { text: "Confirm concrete order for Thursday", status: "Urgent", checked: false } });
+    console.log("5. Creating Tasks...");
+    await prisma.task.create({ data: { text: "Morning briefing with foremen", status: "Done", checked: true, userId } });
+    await prisma.task.create({ data: { text: "Confirm concrete order for Thursday", status: "Urgent", checked: false, userId } });
 
-    console.log("11. Creating Alerts...");
+    console.log("6. Creating Alerts...");
     await prisma.alert.create({ 
       data: {
         type: "warning", 
         text: "Plumbing on Northgate is behind pace.", 
         time: "Now", 
-        isNow: true 
+        isNow: true,
+        userId
       }
     });
 
-    console.log("12. Creating Stock...");
+    console.log("7. Creating Stock...");
     await prisma.stock.create({ 
-        data: { item: "Concrete", amount: "12 m³", date: "Tomorrow", projectId: p1.id } 
+        data: { 
+          item: "Concrete", 
+          amount: "12 m³", 
+          date: "Tomorrow", 
+          projectId: p1.id,
+          status: "On track",
+          bay: "Bay 2",
+          userId 
+        } 
     });
 
-    console.log("Seed Success!");
+    console.log("Seed Success for userId:", userId);
   } catch (error) {
     console.error("Step failed:");
     console.error(error);

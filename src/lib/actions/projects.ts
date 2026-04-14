@@ -21,6 +21,20 @@ export async function createProject(data: {
   }
 
   try {
+    const allowedWorkers = data.workerIds.length
+      ? await db.worker.findMany({
+          where: {
+            id: { in: data.workerIds },
+            userId: session.user.id,
+          },
+          select: { id: true },
+        })
+      : [];
+
+    if (allowedWorkers.length !== data.workerIds.length) {
+      return { success: false, error: "Invalid worker selection" };
+    }
+
     const project = await db.project.create({
       data: {
         name: data.name,
@@ -34,7 +48,7 @@ export async function createProject(data: {
         location: data.location,
         userId: session.user.id,
         workers: {
-          connect: data.workerIds.map((id) => ({ id })),
+          connect: allowedWorkers.map(({ id }) => ({ id })),
         },
         phases: {
           create: data.phases.map((phase) => ({
@@ -145,6 +159,20 @@ export async function updateProject(id: string, data: {
     });
     if (!project) throw new Error("Project not found or unauthorized");
 
+    const allowedWorkers = data.workerIds.length
+      ? await db.worker.findMany({
+          where: {
+            id: { in: data.workerIds },
+            userId: session.user.id,
+          },
+          select: { id: true },
+        })
+      : [];
+
+    if (allowedWorkers.length !== data.workerIds.length) {
+      return { success: false, error: "Invalid worker selection" };
+    }
+
     // 1. Calculate new percentage
     const checkedCount = data.phases.filter(p => p.checked).length;
     const totalCount = data.phases.length;
@@ -164,7 +192,7 @@ export async function updateProject(id: string, data: {
           percentage,
           location: data.location,
           workers: {
-            set: data.workerIds.map(id => ({ id })),
+            set: allowedWorkers.map(({ id: workerId }) => ({ id: workerId })),
           },
         },
       }),

@@ -17,6 +17,14 @@ export async function createEvent(data: {
     throw new Error("Unauthorized");
   }
 
+  // Verify project ownership if provided
+  if (data.projectId) {
+    const project = await db.project.findUnique({
+      where: { id: data.projectId, userId: session.user.id }
+    });
+    if (!project) throw new Error("Invalid project selection");
+  }
+
   const event = await db.event.create({
     data: {
       ...data,
@@ -44,6 +52,14 @@ export async function updateEvent(id: string, data: any) {
   const session = await getSession();
   if (!session?.user?.id) {
     throw new Error("Unauthorized");
+  }
+
+  // Verify project ownership if updating projectId
+  if (data.projectId) {
+    const project = await db.project.findUnique({
+      where: { id: data.projectId, userId: session.user.id }
+    });
+    if (!project) throw new Error("Invalid project selection");
   }
 
   const event = await db.event.update({

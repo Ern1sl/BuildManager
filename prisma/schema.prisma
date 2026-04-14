@@ -25,6 +25,7 @@ model User {
   stocks        Stock[]
   siteLogs      SiteLog[]
   events        Event[]
+  roles         Role[]
 }
 
 model Account {
@@ -121,7 +122,7 @@ model Worker {
   monthlyPay Float    @default(500)
   status     String   @default("active") // active, away
   projectId  String?
-  project    Project? @relation(fields: [projectId], references: [id])
+  project    Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   createdAt  DateTime @default(now())
   userId     String?
   user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -129,8 +130,12 @@ model Worker {
 
 model Role {
   id        String   @id @default(cuid())
-  name      String   @unique
+  name      String
   createdAt DateTime @default(now())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([name, userId])
 }
 
 model Alert {
@@ -149,7 +154,9 @@ model Stock {
   item      String
   amount    String
   date      String
-  project   Project? @relation(fields: [projectId], references: [id])
+  status    String?  // On track, Scheduled, Awaiting confirm
+  bay       String?  // Bay 1, Storage A, etc.
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   projectId String?
   createdAt DateTime @default(now())
   userId    String?

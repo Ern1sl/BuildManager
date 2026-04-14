@@ -4,7 +4,10 @@ import { db } from "@/lib/db";
 import { hash, compare } from "bcryptjs";
 import { getSession } from "@/lib/auth";
 
-export async function updatePassword(formData: any) {
+export async function updatePassword(formData: {
+  currentPassword?: string;
+  newPassword: string;
+}) {
   try {
     const session = await getSession();
     if (!session?.user?.email) {
@@ -12,6 +15,10 @@ export async function updatePassword(formData: any) {
     }
 
     const { currentPassword, newPassword } = formData;
+
+    if (!currentPassword) {
+      return { success: false, error: "Current password is required" };
+    }
 
     const user = await db.user.findUnique({
       where: { email: session.user.email },
@@ -73,8 +80,18 @@ export async function deleteAccount() {
   }
 }
 
-export async function resetPasswordWithToken(token: string, newPassword: any) {
+export async function resetPasswordWithToken(
+  token: string,
+  newPassword: string,
+) {
   try {
+    if (newPassword.length < 8) {
+      return {
+        success: false,
+        error: "Password must be at least 8 characters",
+      };
+    }
+
     const resetToken = await db.passwordResetToken.findUnique({
       where: { token },
     });

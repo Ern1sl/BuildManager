@@ -8,16 +8,29 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendResetEmail(email: string) {
   try {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const user = await db.user.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true },
+    });
+
+    if (!user) {
+      return { success: true };
+    }
+
     // 1. Generate token
     const token = uuidv4();
     const expires = new Date(new Date().getTime() + 3600 * 1000); // 1 hour
 
     // 2. Store in DB
-    await db.passwordResetToken.upsert({
-      where: { email_token: { email, token } },
-      update: { token, expires }, // Rare collision case
-      create: {
-        email,
+    await db.passwordResetToken.deleteMany({
+      where: { email: normalizedEmail },
+    });
+
+    await db.passwordResetToken.create({
+      data: {
+        email: normalizedEmail,
         token,
         expires,
       },
@@ -26,10 +39,12 @@ export async function sendResetEmail(email: string) {
     // 3. Send email
     const resetLink = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`;
 
-    const { data, error } = await resend.emails.send({
-      from: "BuildManager <onboarding@resend.dev>",
-      to: email,
-      subject: "Reset your BuildManager Command Password",
+    const { error } = await resend.emails.send({
+      from:
+        process.env.RESEND_FROM_EMAIL ||
+        "BuildManager <onboarding@resend.dev>",
+      to: normalizedEmail,
+      subject: "Reset your BuildManager Password",
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
           <h2 style="color: #7c3aed;">BuildManager Security</h2>

@@ -15,6 +15,9 @@ export default async function TasksPage() {
   const todayTasks = tasks.filter(t => t.status === "Today" || t.status === "Urgent");
   const otherTasks = tasks.filter(t => t.status !== "Today" && t.status !== "Urgent");
 
+  const mappedToday = todayTasks.map(t => ({ id: t.id, text: t.text, status: t.status || "", checked: t.checked }));
+  const mappedOther = otherTasks.map(t => ({ id: t.id, text: t.text, status: t.status || "", checked: t.checked }));
+
   return (
     <div className="pb-10">
       <header className="mb-10">
@@ -25,12 +28,12 @@ export default async function TasksPage() {
       <div className="max-w-3xl flex flex-col gap-8">
         <TaskCard 
           title="Priority & Today"
-          tasks={todayTasks as any}
+          tasks={mappedToday}
         />
 
         <TaskCard 
           title="Backlog & Site Specific"
-          tasks={otherTasks as any}
+          tasks={mappedOther}
         />
         
         {tasks.length === 0 && (

@@ -5,8 +5,10 @@ import { db } from "@/lib/db";
 export async function POST(req: Request) {
   try {
     const { name, email, password } = await req.json();
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const normalizedName = String(name || "").trim();
 
-    if (!email || !password) {
+    if (!normalizedEmail || !password) {
       return NextResponse.json(
         { error: "Email and password are required." },
         { status: 400 }
@@ -22,7 +24,7 @@ export async function POST(req: Request) {
 
     // Check if user already exists
     const existingUser = await db.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
@@ -37,8 +39,8 @@ export async function POST(req: Request) {
     // Hardcode role to 'employee' for all new registrations as per requirements
     const user = await db.user.create({
       data: {
-        name,
-        email,
+        name: normalizedName || null,
+        email: normalizedEmail,
         password: hashedPassword,
         role: "employee",
       },

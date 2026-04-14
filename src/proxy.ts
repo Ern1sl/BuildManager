@@ -14,7 +14,7 @@ export default async function proxy(req: NextRequest) {
 
   // 1. Unauthenticated → redirect to login
   if (!token && !isAuthPage) {
-    url.pathname = "/register";
+    url.pathname = "/login";
     url.searchParams.set("callbackUrl", req.nextUrl.pathname);
     return NextResponse.redirect(url);
   }

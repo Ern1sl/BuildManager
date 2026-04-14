@@ -16,6 +16,7 @@ export default async function TeamPage() {
       orderBy: { createdAt: 'desc' }
     }),
     db.role.findMany({
+      where: { userId: session.user.id },
       orderBy: { name: 'asc' }
     }),
     db.project.findMany({

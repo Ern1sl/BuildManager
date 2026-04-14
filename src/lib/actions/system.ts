@@ -17,6 +17,7 @@ export async function superFactoryReset() {
       db.task.deleteMany({ where: { userId: session.user.id } }),
       db.siteLog.deleteMany({ where: { userId: session.user.id } }),
       db.alert.deleteMany({ where: { userId: session.user.id } }),
+      db.role.deleteMany({ where: { userId: session.user.id } }),
       db.project.deleteMany({ where: { userId: session.user.id } }),
     ]);
 

@@ -11,6 +11,17 @@ export async function createWorker(data: { name: string; role: string; monthlyPa
   }
 
   try {
+    if (data.projectId) {
+      const project = await db.project.findUnique({
+        where: { id: data.projectId, userId: session.user.id },
+        select: { id: true },
+      });
+
+      if (!project) {
+        return { success: false, error: "Invalid project selection" };
+      }
+    }
+
     const worker = await db.worker.create({
       data: {
         name: data.name,
@@ -38,9 +49,23 @@ export async function updateWorker(id: string, data: { name?: string; role?: str
   }
 
   try {
+    if (data.projectId) {
+      const project = await db.project.findUnique({
+        where: { id: data.projectId, userId: session.user.id },
+        select: { id: true },
+      });
+
+      if (!project) {
+        return { success: false, error: "Invalid project selection" };
+      }
+    }
+
     const worker = await db.worker.update({
       where: { id, userId: session.user.id },
-      data,
+      data: {
+        ...data,
+        projectId: data.projectId || null,
+      },
       include: { project: true }
     });
     revalidatePath("/team");
@@ -70,9 +95,17 @@ export async function deleteWorker(id: string) {
 }
 
 export async function createRole(name: string) {
+  const session = await getSession();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   try {
     const role = await db.role.create({
-      data: { name }
+      data: { 
+        name,
+        userId: session.user.id
+      }
     });
     revalidatePath("/team");
     return { success: true, data: role };
