@@ -27,6 +27,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
   const userId = session?.user?.id;
 
+  const [theme, setThemeState] = useState<Theme>("dark");
+  const [currency, setCurrencyState] = useState<Currency>("EUR");
+  const [avatar, setAvatarState] = useState<string>("👤");
+  const [userName, setUserNameState] = useState<string>("Admin");
+  const [weatherLocation, setWeatherLocationState] = useState<{ name: string, lat: number, lon: number } | null>(null);
+
   // Load from localStorage on mount and when user changes
   useEffect(() => {
     if (!userId) {

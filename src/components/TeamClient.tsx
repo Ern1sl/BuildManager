@@ -38,6 +38,7 @@ export default function TeamClient({ initialWorkers, roles, projects }: TeamClie
   const { isGhostMode } = useSafety();
   const { data: session } = useSession();
   const userId = session?.user?.id;
+  const [showPay, setShowPay] = useState(true);
 
   // Sync with localStorage for persistence when user changes
   useEffect(() => {
