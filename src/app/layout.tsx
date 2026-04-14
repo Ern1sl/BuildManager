@@ -3,6 +3,7 @@ import { Oswald, Funnel_Display, Fjalla_One, Plus_Jakarta_Sans } from "next/font
 import "./globals.css";
 import Providers from "./providers";
 import NextTopLoader from "nextjs-toploader";
+import { Analytics } from "@vercel/analytics/next";
 
 const oswald = Oswald({ variable: "--font-oswald", subsets: ["latin"] });
 const funnelDisplay = Funnel_Display({ variable: "--font-funnel", subsets: ["latin"] });
@@ -33,6 +34,7 @@ export default function RootLayout({
           <SafetyScreen />
           {children}
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
