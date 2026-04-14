@@ -20,10 +20,13 @@ export default async function Home() {
   // 1. Critical Base Calculations (Minimal Blocking)
   const [projects, totalWorkers] = await Promise.all([
     db.project.findMany({ 
+      where: { userId: session.user.id },
       orderBy: { percentage: 'desc' },
       include: { workers: true }
     }),
-    db.worker.count()
+    db.worker.count({
+      where: { userId: session.user.id }
+    })
   ]);
 
   const dashboardData = {

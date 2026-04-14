@@ -9,17 +9,15 @@ export async function superFactoryReset() {
     const session = await getSession();
     if (!session?.user?.id) return { success: false, error: "Not authorized" };
 
-    // Nuclear Wipe: Wipe all entities except User and Roles
+    // User-specific Wipe: Wipe all entities belonging to this user
     await db.$transaction([
-      db.phase.deleteMany({}),
-      db.stock.deleteMany({}),
-      db.event.deleteMany({}),
-      db.worker.deleteMany({}),
-      db.project.deleteMany({}),
-      db.task.deleteMany({}),
-      db.siteLog.deleteMany({}),
-      db.alert.deleteMany({}),
-      db.passwordResetToken.deleteMany({}),
+      db.stock.deleteMany({ where: { userId: session.user.id } }),
+      db.event.deleteMany({ where: { userId: session.user.id } }),
+      db.worker.deleteMany({ where: { userId: session.user.id } }),
+      db.task.deleteMany({ where: { userId: session.user.id } }),
+      db.siteLog.deleteMany({ where: { userId: session.user.id } }),
+      db.alert.deleteMany({ where: { userId: session.user.id } }),
+      db.project.deleteMany({ where: { userId: session.user.id } }),
     ]);
 
     revalidatePath("/dashboard");

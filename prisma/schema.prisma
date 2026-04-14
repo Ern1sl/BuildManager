@@ -18,6 +18,13 @@ model User {
   createdAt     DateTime  @default(now())
   accounts      Account[]
   sessions      Session[]
+  projects      Project[]
+  tasks         Task[]
+  workers       Worker[]
+  alerts        Alert[]
+  stocks        Stock[]
+  siteLogs      SiteLog[]
+  events        Event[]
 }
 
 model Account {
@@ -81,6 +88,8 @@ model Project {
   workers    Worker[]
   phases     Phase[]
   events     Event[]
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Phase {
@@ -101,6 +110,8 @@ model Task {
   previousStatus String?  // To restore status when unchecking
   checked        Boolean  @default(false)
   createdAt      DateTime @default(now())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Worker {
@@ -112,6 +123,8 @@ model Worker {
   projectId  String?
   project    Project? @relation(fields: [projectId], references: [id])
   createdAt  DateTime @default(now())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Role {
@@ -127,6 +140,8 @@ model Alert {
   time      String
   isNow     Boolean  @default(false)
   createdAt DateTime @default(now())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Stock {
@@ -137,6 +152,8 @@ model Stock {
   project   Project? @relation(fields: [projectId], references: [id])
   projectId String?
   createdAt DateTime @default(now())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model SiteLog {
@@ -145,6 +162,8 @@ model SiteLog {
   comment    String
   importance String   // gray, orange, red
   createdAt  DateTime @default(now())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Event {
@@ -157,4 +176,6 @@ model Event {
   projectId   String?
   project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   createdAt   DateTime @default(now())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

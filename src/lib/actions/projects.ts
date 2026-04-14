@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { getSession } from "@/lib/auth";
 
 export async function createProject(data: {
   name: string;
@@ -14,6 +15,11 @@ export async function createProject(data: {
   phases: { name: string; importance: string; deadline?: Date }[];
   location?: string;
 }) {
+  const session = await getSession();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   try {
     const project = await db.project.create({
       data: {
@@ -26,6 +32,7 @@ export async function createProject(data: {
         percentage: 0,
         status: "on track",
         location: data.location,
+        userId: session.user.id,
         workers: {
           connect: data.workerIds.map((id) => ({ id })),
         },
@@ -56,8 +63,9 @@ export async function togglePhase(phaseId: string) {
       include: { project: { include: { phases: true } } },
     });
 
-    if (!phase || !phase.project) {
-      throw new Error("Phase or Project not found");
+    const session = await getSession();
+    if (!session?.user?.id || !phase || !phase.project || phase.project.userId !== session.user.id) {
+      throw new Error("Phase or Project not found or unauthorized");
     }
 
     const newChecked = !phase.checked;
@@ -93,9 +101,17 @@ export async function togglePhase(phaseId: string) {
 }
 
 export async function deleteProject(id: string) {
+  const session = await getSession();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   try {
     await db.project.delete({
-      where: { id },
+      where: { 
+        id,
+        userId: session.user.id 
+      },
     });
     revalidatePath("/dashboard");
     revalidatePath("/projects");
@@ -117,7 +133,18 @@ export async function updateProject(id: string, data: {
   phases: { name: string; importance: string; deadline?: Date; checked?: boolean }[];
   location?: string;
 }) {
+  const session = await getSession();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   try {
+    // 0. Verify ownership
+    const project = await db.project.findUnique({
+      where: { id, userId: session.user.id }
+    });
+    if (!project) throw new Error("Project not found or unauthorized");
+
     // 1. Calculate new percentage
     const checkedCount = data.phases.filter(p => p.checked).length;
     const totalCount = data.phases.length;
@@ -126,7 +153,7 @@ export async function updateProject(id: string, data: {
     await db.$transaction([
       // Update basic fields & workers
       db.project.update({
-        where: { id },
+        where: { id, userId: session.user.id },
         data: {
           name: data.name,
           client: data.client,

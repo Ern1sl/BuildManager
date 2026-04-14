@@ -12,13 +12,17 @@ export default async function ProjectsPage() {
 
   const [projects, workers] = await Promise.all([
     db.project.findMany({
+      where: { userId: session.user.id },
       include: {
         workers: true,
         phases: { orderBy: { createdAt: 'asc' } }
       },
       orderBy: { createdAt: 'desc' }
     }),
-    db.worker.findMany({ select: { id: true, name: true, role: true } })
+    db.worker.findMany({ 
+      where: { userId: session.user.id },
+      select: { id: true, name: true, role: true } 
+    })
   ]);
 
   return (

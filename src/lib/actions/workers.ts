@@ -2,8 +2,14 @@
 
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { getSession } from "@/lib/auth";
 
 export async function createWorker(data: { name: string; role: string; monthlyPay: number; projectId?: string }) {
+  const session = await getSession();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   try {
     const worker = await db.worker.create({
       data: {
@@ -12,6 +18,7 @@ export async function createWorker(data: { name: string; role: string; monthlyPa
         monthlyPay: data.monthlyPay,
         projectId: data.projectId || null,
         status: "active",
+        userId: session.user.id,
       },
       include: { project: true }
     });
@@ -25,9 +32,14 @@ export async function createWorker(data: { name: string; role: string; monthlyPa
 }
 
 export async function updateWorker(id: string, data: { name?: string; role?: string; monthlyPay?: number; projectId?: string }) {
+  const session = await getSession();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   try {
     const worker = await db.worker.update({
-      where: { id },
+      where: { id, userId: session.user.id },
       data,
       include: { project: true }
     });
@@ -41,8 +53,13 @@ export async function updateWorker(id: string, data: { name?: string; role?: str
 }
 
 export async function deleteWorker(id: string) {
+  const session = await getSession();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   try {
-    await db.worker.delete({ where: { id } });
+    await db.worker.delete({ where: { id, userId: session.user.id } });
     revalidatePath("/team");
     revalidatePath("/dashboard");
     return { success: true };

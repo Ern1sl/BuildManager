@@ -2,6 +2,7 @@
 
 import { db } from "../db";
 import { revalidatePath } from "next/cache";
+import { getSession } from "@/lib/auth";
 
 export async function createEvent(data: {
   title: string;
@@ -11,10 +12,16 @@ export async function createEvent(data: {
   color?: string;
   projectId?: string;
 }) {
+  const session = await getSession();
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
   const event = await db.event.create({
     data: {
       ...data,
-      color: data.color || "bg-[var(--accent-primary)]"
+      color: data.color || "bg-[var(--accent-primary)]",
+      userId: session.user.id,
     }
   });
   revalidatePath("/calendar");
@@ -23,14 +30,24 @@ export async function createEvent(data: {
 }
 
 export async function deleteEvent(id: string) {
-  await db.event.delete({ where: { id } });
+  const session = await getSession();
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  await db.event.delete({ where: { id, userId: session.user.id } });
   revalidatePath("/calendar");
   revalidatePath("/dashboard");
 }
 
 export async function updateEvent(id: string, data: any) {
+  const session = await getSession();
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
   const event = await db.event.update({
-    where: { id },
+    where: { id, userId: session.user.id },
     data
   });
   revalidatePath("/calendar");

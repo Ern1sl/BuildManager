@@ -1,14 +1,21 @@
 import { db } from "@/lib/db";
 import MasterProjectsCard from "@/components/MasterProjectsCard";
 import RemindersWidget from "@/components/RemindersWidget";
+import { getSession } from "@/lib/auth";
 
 export async function DeferredProjectsSection() {
+  const session = await getSession();
+  if (!session?.user?.id) return null;
+
   const [projects, totalWorkers] = await Promise.all([
     db.project.findMany({ 
+      where: { userId: session.user.id },
       orderBy: { percentage: 'desc' },
       include: { workers: true }
     }),
-    db.worker.count() // Optimization: using count() instead of fetching all
+    db.worker.count({
+      where: { userId: session.user.id }
+    })
   ]);
 
   return (
@@ -20,8 +27,12 @@ export async function DeferredProjectsSection() {
 }
 
 export async function DeferredCalendarSection() {
+  const session = await getSession();
+  if (!session?.user?.id) return null;
+
   const calendarEvents = await db.event.findMany({ 
     where: { 
+        userId: session.user.id,
         date: { gte: new Date(new Date().setHours(0,0,0,0)) } 
     },
     include: { project: { select: { name: true } } },

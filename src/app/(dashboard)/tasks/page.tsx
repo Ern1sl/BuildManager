@@ -1,34 +1,43 @@
 import TaskCard from "@/components/TaskCard";
+import { db } from "@/lib/db";
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function TasksPage() {
+export default async function TasksPage() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+
+  const tasks = await db.task.findMany({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: 'desc' }
+  });
+
+  const todayTasks = tasks.filter(t => t.status === "Today" || t.status === "Urgent");
+  const otherTasks = tasks.filter(t => t.status !== "Today" && t.status !== "Urgent");
+
   return (
     <div className="pb-10">
-      <header className="mb-10 text-white">
-        <h1 className="text-3xl font-bold tracking-tight mb-1">Tasks</h1>
-        <p className="text-gray-400 font-semibold tracking-tight">Per project, per day — everything that needs doing</p>
+      <header className="mb-10">
+        <h1 className="text-3xl font-bold text-[var(--foreground)] tracking-tight mb-1">Tasks</h1>
+        <p className="text-[var(--text-secondary)] font-semibold tracking-tight">Per project, per day — everything that needs doing</p>
       </header>
 
       <div className="max-w-3xl flex flex-col gap-8">
         <TaskCard 
-          title="Today — Apr 7"
-          tasks={[
-            { id: "1", text: "Morning briefing with foremen", status: "Done", checked: true },
-            { id: "2", text: "Review weekend site report", status: "Done", checked: true },
-            { id: "3", text: "Confirm concrete order for Thursday delivery", status: "Urgent" },
-            { id: "4", text: "Review Veliu electrical subcontractor invoice", status: "Today" },
-            { id: "5", text: "Update plumbing phase on Northgate", status: "Northgate" },
-          ]}
+          title="Priority & Today"
+          tasks={todayTasks as any}
         />
 
         <TaskCard 
-          title="This week"
-          tasks={[
-            { id: "w1", text: "Order rebar restock (40 units shortage flagged)", status: "Urgent" },
-            { id: "w2", text: "Schedule crane inspection for Veliu site", status: "Veliu" },
-            { id: "w3", text: "Prepare weekly payroll for Friday", status: "Today" },
-            { id: "w4", text: "Walk Dragash site with municipality inspector", status: "Dragash" },
-          ]}
+          title="Backlog & Site Specific"
+          tasks={otherTasks as any}
         />
+        
+        {tasks.length === 0 && (
+          <div className="p-12 border border-dashed border-[var(--card-border)] rounded-[2rem] text-center">
+            <p className="text-[var(--text-secondary)]">No tasks found. Use the dashboard to add some site observations.</p>
+          </div>
+        )}
       </div>
     </div>
   );

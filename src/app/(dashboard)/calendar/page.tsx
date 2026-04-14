@@ -12,6 +12,7 @@ export default async function CalendarPage() {
 
   const [projects, manualEvents] = await Promise.all([
     db.project.findMany({
+      where: { userId: session.user.id },
       select: {
         id: true,
         name: true,
@@ -27,6 +28,7 @@ export default async function CalendarPage() {
       }
     }),
     db.event.findMany({
+      where: { userId: session.user.id },
       include: {
         project: { select: { name: true } }
       },
